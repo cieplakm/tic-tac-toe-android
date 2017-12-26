@@ -13,6 +13,7 @@ import com.mmc.tiktaktoe.CellPosition;
 import com.mmc.tiktaktoe.TicTacToeBoard;
 import com.mmc.tiktaktoe.TicTacToeMover;
 import com.mmc.tiktaktoe.TicTacToeRefeere;
+import com.mmc.tiktaktoe.TicTacToeType;
 import com.mmc.tiktaktoe.abstraction.Board;
 import com.mmc.tiktaktoe.abstraction.Cell;
 import com.mmc.tiktaktoe.abstraction.Mover;
@@ -32,6 +33,10 @@ public class MainActivity extends AppCompatActivity implements Printer {
     TextView tvReultX;
     TextView tvReultO;
     Button btnReset;
+    TextView tvTurn;
+    TextView tvAmoutnOfGames;
+
+    int amount = 0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -40,6 +45,8 @@ public class MainActivity extends AppCompatActivity implements Printer {
 
         tvReultX = (TextView) findViewById(R.id.tv_x_count);
         tvReultO = (TextView) findViewById(R.id.tv_o_count);
+        tvTurn = (TextView) findViewById(R.id.tv_turn);
+        tvAmoutnOfGames = (TextView) findViewById(R.id.tv_game_amount);
 
         btnReset = (Button) findViewById(R.id.btn_reset);
 
@@ -51,6 +58,7 @@ public class MainActivity extends AppCompatActivity implements Printer {
         refeere.addRule(new DiagonalRule());
 
         mover = new TicTacToeMover(board);
+        mover.startFrom(TicTacToeType.O);
 
         refeere.setOnWinListener(new Refeere.OnWinListener() {
             @Override
@@ -70,28 +78,52 @@ public class MainActivity extends AppCompatActivity implements Printer {
             public void onMove() {
                 refeere.checkIfSomeoneWon();
 
-                if (board.isFull()){
-                    board.resetFields();
-                }
+//                if (board.isFull()){
+//                    board.resetFields();
+//                }
+
+                setTurnTitle();
 
             }
         });
-
-        print();
-
-
 
         btnReset.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 board.resetFields();
+                mover.reset();
+                refeere.reset();
+
+
+
+                amount++;
+                setAmoutOfGames();
+                resetFieldsColor();
+                setTurnTitle();
                 print();
             }
         });
 
+        setTurnTitle();
+
+        print();
+
+
     }
 
+    private void setAmoutOfGames() {
+        tvAmoutnOfGames.setText(""+amount);
+    }
 
+    private void setTurnTitle() {
+        if (mover.getTurn() == TicTacToeType.X){
+            tvTurn.setText("Teraz jest kolej -> X");
+        }else {
+            tvTurn.setText("Teraz jest kolej -> O");
+        }
+    }
+
+    ImageView[][] list;
     @Override
     public void print() {
         ImageView cell11 = (ImageView) findViewById(R.id.iv_ttt11);
@@ -110,14 +142,18 @@ public class MainActivity extends AppCompatActivity implements Printer {
             @Override
             public void onClick(View view) {
                 Position position = getPosition(view);
-                mover.move(position);
+
+                if (!refeere.isWon()){
+                    mover.move(position);
+                }
+
                 print();
             }
         };
 
 
 
-        ImageView[][] list = new ImageView[3][];
+        list = new ImageView[3][];
 
         ImageView[] row1 = new ImageView[3];
 
@@ -158,6 +194,12 @@ public class MainActivity extends AppCompatActivity implements Printer {
                         list[i][k].setImageDrawable(getResources().getDrawable(R.drawable.ic_panorama_fish_eye_black_24dp));
                     }
 
+                    if (tic.isTakePartOfWon()){
+                        list[i][k].setBackgroundColor(getResources().getColor(R.color.colorAccent));
+                    }else{
+                        list[i][k].setBackgroundColor(getResources().getColor(R.color.colorPrimary));
+                    }
+
 
                 }else {
                     Log.d("LOGI", i+ " " + k);
@@ -194,4 +236,23 @@ public class MainActivity extends AppCompatActivity implements Printer {
         }
         return null;
     }
+
+
+    public void resetFieldsColor() {
+        int i = 0;
+        for (Cell[] ta : board.getCells()) {
+
+            int k = 0;
+
+            for (Cell tic : ta) {
+
+                list[i][k].setBackgroundColor(getResources().getColor(R.color.colorPrimary));
+
+                k++;
+            }
+
+            i++;
+        }
+    }
+
 }
